@@ -3,57 +3,24 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, watch } from 'vue'
-import Konva from 'konva'
+import { defineComponent, ref } from 'vue'
+import { useKonva } from './utils/useKonva'
+
+
+
 
 export default defineComponent({
   setup() {
-    const container = ref(null)
-
-    onMounted(() => {
-
-      const stage = new Konva.Stage({
-        container: container.value || 'container',   // id of container <div>
-        width: 500,
-        height: 500
-      });
-
-      // then create layer
-      var layer = new Konva.Layer();
+    const { init } = useKonva()
+    const container = ref()
+    init()
 
 
-      // create our shape
-      var circle = new Konva.Circle({
-        x: stage.width() / 2,
-        y: stage.height() / 2,
-        radius: 70,
-        fill: 'red',
-        stroke: 'black',
-        strokeWidth: 1
-      });
 
-      circle.draggable(true)
 
-      // add the shape to the layer
-      layer.add(circle);
-
-      // add the layer to the stage
-      stage.add(layer);
-
-      // draw the image
-      layer.draw();
-
-      circle.on('click', () => {
-        console.log('clicked')
-      })
-
-      const addCircle = () => {
-        layer.add(circle)
-      }
-    })
 
     return {
-      container
+      container,
     }
   }
 })
