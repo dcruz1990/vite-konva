@@ -6,15 +6,27 @@ export const useKonva = () => {
   const layer = ref<Konva.Layer>();
 
   const init = (el: HTMLDivElement) => {
-    konvaInstance.value = new Konva.Stage({
-      container: el || "container", // id of container <div>
-      width: 500,
-      height: 500,
-    });
+    if (!el) return;
 
-    layer.value = new Konva.Layer();
+    let savedStage = localStorage.getItem("stage");
 
-    konvaInstance.value.add(layer.value);
+    if (savedStage) {
+      konvaInstance.value = Konva.Node.create(JSON.parse(savedStage), el);
+
+      layer.value = new Konva.Layer();
+
+      konvaInstance.value?.add(layer.value);
+    } else {
+      konvaInstance.value = new Konva.Stage({
+        container: el || "container", // id of container <div>
+        width: 500,
+        height: 500,
+      });
+
+      layer.value = new Konva.Layer();
+
+      konvaInstance.value.add(layer.value);
+    }
   };
 
   const drawCircle = () => {
@@ -33,5 +45,31 @@ export const useKonva = () => {
     layer.value?.add(circle);
   };
 
-  return { init, konvaInstance, drawCircle };
+  const drawImage = () => {
+    if (!layer.value) return;
+
+    Konva.Image.fromURL(
+      "https://picsum.photos/id/1005/300/300",
+      function (darthNode: any) {
+        console.log("fire image load");
+        darthNode.setAttrs({
+          x: 200,
+          y: 50,
+          scaleX: 0.5,
+          scaleY: 0.5,
+        });
+        darthNode.draggable(true);
+        layer.value?.add(darthNode);
+        konvaInstance.value?.draw();
+      }
+    );
+  };
+
+  const saveToLocalStorage = () => {
+    konvaInstance.value
+      ? localStorage.setItem("stage", konvaInstance.value?.toJSON())
+      : null;
+  };
+
+  return { init, konvaInstance, drawCircle, drawImage, saveToLocalStorage };
 };

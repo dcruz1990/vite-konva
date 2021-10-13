@@ -2,8 +2,8 @@
   <div id="container" ref="container"></div>
   <div style="display: flex;">
     <button @click="drawCircle">Add Circle</button>
-    <button>Add Image</button>
-    <button>Save Stage</button>
+    <button @click="drawImage">Add Image</button>
+    <button @click="saveToLocalStorage">Save Stage</button>
   </div>
 </template>
 
@@ -17,16 +17,21 @@ export default defineComponent({
     const container = ref()
 
     // Bring Konva Instance
-    const { init, konvaInstance, drawCircle } = useKonva()
+    const { init, drawCircle, drawImage, saveToLocalStorage } = useKonva()
 
     onMounted(() => {
       // Init Konva
       init(container.value)
     })
 
+
+
+
     return {
       container,
-      drawCircle
+      drawCircle,
+      drawImage,
+      saveToLocalStorage
     }
   }
 })
