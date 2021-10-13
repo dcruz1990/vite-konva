@@ -1,8 +1,22 @@
 import Konva from "konva";
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 
 export const useKonva = () => {
   const init = (el?: HTMLDivElement) => {
+    const test = ref();
+
+    var imageObj = new Image();
+    imageObj.onload = function () {
+      var image = new Konva.Image({
+        x: 200,
+        y: 50,
+        image: imageObj,
+        width: 100,
+        height: 100,
+      });
+    };
+    imageObj.src = "https://picsum.photos/id/1005/300/300";
+
     onMounted(() => {
       const stage = new Konva.Stage({
         container: el || "container", // id of container <div>
@@ -38,20 +52,44 @@ export const useKonva = () => {
         console.log("clicked");
       });
 
-      stage.on("click", () => {
-        let my = new Konva.Circle({
-          x: stage.width() / 2,
-          y: stage.height() / 2,
-          radius: 70,
-          fill: "red",
-          stroke: "black",
-          strokeWidth: 1,
-          draggable: true,
-        });
-        layer.add(my);
+      const addCircleButton = document.getElementById("btn");
+      const addImageButton = document.getElementById("addImageBtn");
 
-        stage.draw();
-      });
+      if (addCircleButton)
+        addCircleButton.addEventListener("click", () => {
+          let my = new Konva.Circle({
+            x: stage.width() / 2,
+            y: stage.height() / 2,
+            radius: 70,
+            fill: "red",
+            stroke: "black",
+            strokeWidth: 1,
+            draggable: true,
+          });
+          layer.add(my);
+          stage.draw();
+        });
+
+      if (addImageButton) {
+        addImageButton.addEventListener("click", () => {
+          console.log("clicked image btn");
+          Konva.Image.fromURL(
+            "https://picsum.photos/id/1005/300/300",
+            function (darthNode: any) {
+              console.log("fire image load");
+              darthNode.setAttrs({
+                x: 200,
+                y: 50,
+                scaleX: 0.5,
+                scaleY: 0.5,
+              });
+              darthNode.draggable(true);
+              layer.add(darthNode);
+              stage.draw();
+            }
+          );
+        });
+      }
     });
   };
 
