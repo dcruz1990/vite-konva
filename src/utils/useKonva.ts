@@ -1,4 +1,5 @@
 import Konva from "konva";
+import { Stage } from "konva/lib/Stage";
 import { onMounted, ref } from "vue";
 
 export const useKonva = () => {
@@ -18,19 +19,27 @@ export const useKonva = () => {
     imageObj.src = "https://picsum.photos/id/1005/300/300";
 
     onMounted(() => {
-      const stage = new Konva.Stage({
-        container: el || "container", // id of container <div>
-        width: 500,
-        height: 500,
-      });
+      const savedStage = localStorage.getItem("stage");
+      const stage = ref();
+
+      if (savedStage) {
+        stage.value = Konva.Node.create(JSON.parse(savedStage), "container");
+        // stage.add(savedLayer);
+      } else {
+        stage.value = new Konva.Stage({
+          container: el || "container", // id of container <div>
+          width: 500,
+          height: 500,
+        });
+      }
 
       // then create layer
       const layer = new Konva.Layer();
 
       // create our shape
       const circle = new Konva.Circle({
-        x: stage.width() / 2,
-        y: stage.height() / 2,
+        x: stage.value.width() / 2,
+        y: stage.value.height() / 2,
         radius: 70,
         fill: "red",
         stroke: "black",
@@ -43,12 +52,12 @@ export const useKonva = () => {
       // layer.add(circle);
 
       // add the layer to the stage
-      stage.add(layer);
+      stage.value.add(layer);
 
       // draw the image
       layer.draw();
 
-      stage.on("click", () => {
+      stage.value.on("click", () => {
         console.log("clicked");
       });
 
@@ -58,15 +67,15 @@ export const useKonva = () => {
 
       if (saveBtn)
         saveBtn.addEventListener("click", () => {
-          localStorage.setItem("stage", stage.toJSON());
+          localStorage.setItem("stage", stage.value.toJSON());
           alert("Saved to localstorage");
         });
 
       if (addCircleButton)
         addCircleButton.addEventListener("click", () => {
           let my = new Konva.Circle({
-            x: stage.width() / 2,
-            y: stage.height() / 2,
+            x: stage.value.width() / 2,
+            y: stage.value.height() / 2,
             radius: 70,
             fill: "red",
             stroke: "black",
@@ -74,7 +83,7 @@ export const useKonva = () => {
             draggable: true,
           });
           layer.add(my);
-          stage.draw();
+          stage.value.draw();
         });
 
       if (addImageButton) {
@@ -92,7 +101,7 @@ export const useKonva = () => {
               });
               darthNode.draggable(true);
               layer.add(darthNode);
-              stage.draw();
+              stage.value.draw();
             }
           );
         });
