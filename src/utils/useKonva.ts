@@ -1,4 +1,5 @@
 import Konva from "konva";
+import { Stage } from "konva/lib/Stage";
 import { ref } from "vue";
 
 export const useKonva = () => {
@@ -30,7 +31,9 @@ export const useKonva = () => {
 
     konvaInstance.value?.add(layer.value);
 
-    konvaInstance.value?.on("click", (event: any) => select(event));
+    konvaInstance.value?.on("click", (event: any) => {
+      transform(event);
+    });
   };
 
   const createObject = (attrs: any) => {
@@ -91,11 +94,16 @@ export const useKonva = () => {
       : null;
   };
 
-  const select = (event: any) => {
-    console.log(event);
-    if (event.target === konvaInstance.value) return;
-    const nodes = tr.value?.nodes().concat([event.target]);
-    if (nodes) tr.value?.nodes(nodes);
+  const transform = (event: any) => {
+    console.log(event.target.attrs.width);
+    if (konvaInstance.value) console.log(konvaInstance.value.width);
+    if (event.target.attrs.width === konvaInstance.value?.width) {
+      console.info("iguales");
+      tr.value?.nodes([]);
+      return;
+    }
+    // const nodes = tr.value?.nodes().concat([event.target]);
+    // if (nodes) tr.value?.nodes(nodes);
   };
 
   return { init, konvaInstance, drawCircle, drawImage, saveToLocalStorage };
