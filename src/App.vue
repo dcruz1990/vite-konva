@@ -1,10 +1,9 @@
 <template>
   <div id="container" ref="container"></div>
-  <div style="display: flex;">
-    <button @click="drawCircle">Add Circle</button>
-    <button @click="drawImage">Add Image</button>
-    <button @click="saveToLocalStorage">Save Stage</button>
-  </div>
+
+  <button @click="drawCircle">Add Circle</button>
+  <button @click="drawImage">Add Image</button>
+  <button @click="saveToLocalStorage">Save Stage</button>
 </template>
 
 <script lang="ts">
@@ -36,4 +35,14 @@ export default defineComponent({
   }
 })
 </script>
+
+<style scoped>
+.container {
+  width: 500px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  background-color: bisque;
+}
+</style>
 

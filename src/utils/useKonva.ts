@@ -4,6 +4,7 @@ import { ref } from "vue";
 export const useKonva = () => {
   const konvaInstance = ref<Konva.Stage>();
   const layer = ref<Konva.Layer>();
+  const tr = ref<Konva.Transformer>();
 
   const init = (el: HTMLDivElement) => {
     if (!el) return;
@@ -12,21 +13,19 @@ export const useKonva = () => {
 
     if (savedStage) {
       konvaInstance.value = Konva.Node.create(JSON.parse(savedStage), el);
-
-      layer.value = new Konva.Layer();
-
-      konvaInstance.value?.add(layer.value);
     } else {
       konvaInstance.value = new Konva.Stage({
         container: el || "container", // id of container <div>
         width: 500,
         height: 500,
       });
-
-      layer.value = new Konva.Layer();
-
-      konvaInstance.value.add(layer.value);
     }
+
+    layer.value = new Konva.Layer();
+
+    tr.value = new Konva.Transformer();
+
+    konvaInstance.value?.add(layer.value);
   };
 
   const drawCircle = () => {
@@ -67,7 +66,8 @@ export const useKonva = () => {
 
   const saveToLocalStorage = () => {
     konvaInstance.value
-      ? localStorage.setItem("stage", konvaInstance.value?.toJSON())
+      ? (localStorage.setItem("stage", konvaInstance.value?.toJSON()),
+        alert("saved to local"))
       : null;
   };
 
