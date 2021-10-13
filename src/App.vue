@@ -2,6 +2,7 @@
   <div id="container" ref="container"></div>
   <button id="btn">Add Circle</button>
   <button id="addImageBtn">Add Image</button>
+  <button id="save">Save Stage</button>
 </template>
 
 <script lang="ts">
@@ -17,9 +18,7 @@ export default defineComponent({
     // Draw stage, layer and circles
     init()
     // Trying to get Stage    
-    const stage = getStage().then(stage => {
-      console.log(stage)
-    })
+    const stage = getStage()
     // Sometimes it gets undefined :(
     console.log(stage)
 

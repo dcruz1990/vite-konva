@@ -54,6 +54,13 @@ export const useKonva = () => {
 
       const addCircleButton = document.getElementById("btn");
       const addImageButton = document.getElementById("addImageBtn");
+      const saveBtn = document.getElementById("save");
+
+      if (saveBtn)
+        saveBtn.addEventListener("click", () => {
+          localStorage.setItem("stage", stage.toJSON());
+          alert("Saved to localstorage");
+        });
 
       if (addCircleButton)
         addCircleButton.addEventListener("click", () => {
@@ -93,7 +100,7 @@ export const useKonva = () => {
     });
   };
 
-  const getStage = async () => {
+  const getStage = () => {
     return Konva.stages[0];
   };
 
