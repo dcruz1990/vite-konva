@@ -11,9 +11,12 @@ import { useKonva } from './utils/useKonva'
 
 export default defineComponent({
   setup() {
-    const { init } = useKonva()
+    const { init, getStage } = useKonva()
     const container = ref()
     init()
+    const stage = getStage()
+
+    console.log(stage)
 
 
 

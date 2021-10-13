@@ -46,6 +46,7 @@ export const useKonva = () => {
           fill: "red",
           stroke: "black",
           strokeWidth: 1,
+          draggable: true,
         });
         layer.add(my);
 
@@ -54,7 +55,12 @@ export const useKonva = () => {
     });
   };
 
+  const getStage = async () => {
+    return Konva.stages[0];
+  };
+
   return {
     init,
+    getStage,
   };
 };
