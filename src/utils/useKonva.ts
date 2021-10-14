@@ -1,11 +1,13 @@
 import Konva from "konva";
 import { Stage } from "konva/lib/Stage";
 import { ref } from "vue";
+import { general } from "./general";
 
 export const useKonva = () => {
   const konvaInstance = ref<Konva.Stage>();
   const layer = ref<Konva.Layer>();
   const tr = ref<Konva.Transformer>();
+  const { isEqual } = general();
 
   const state = ref<NodeObject[]>();
 
@@ -95,15 +97,14 @@ export const useKonva = () => {
   };
 
   const transform = (event: any) => {
-    console.log(event.target.attrs.width);
-    if (konvaInstance.value) console.log(konvaInstance.value.width);
-    if (event.target.attrs.width === konvaInstance.value?.width) {
-      console.info("iguales");
+    if (!konvaInstance.value) return;
+
+    if (isEqual([event.target, konvaInstance.value])) {
       tr.value?.nodes([]);
       return;
     }
-    // const nodes = tr.value?.nodes().concat([event.target]);
-    // if (nodes) tr.value?.nodes(nodes);
+    const nodes = tr.value?.nodes().concat([event.target]);
+    if (nodes) tr.value?.nodes(nodes);
   };
 
   return { init, konvaInstance, drawCircle, drawImage, saveToLocalStorage };
