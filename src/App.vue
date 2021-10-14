@@ -2,7 +2,7 @@
   <div id="container" ref="container"></div>
 
   <button @click="drawCircle">Add Circle</button>
-  <button @click="drawImage">Add Image</button>
+  <button @click="addImage">Add Image</button>
   <button @click="saveToLocalStorage">Save Stage</button>
 </template>
 
@@ -16,12 +16,21 @@ export default defineComponent({
     const container = ref()
 
     // Bring Konva Instance
-    const { init, drawCircle, drawImage, saveToLocalStorage } = useKonva()
+    const { init, drawCircle, drawImage, saveToLocalStorage, state } = useKonva()
 
     onMounted(() => {
       // Init Konva
       init(container.value)
+      // console.log(state.value)
     })
+
+    const addImage = () => {
+      drawImage({
+        x: 100,
+        y: 100,
+        draggable: true,
+      }, "https://picsum.photos/id/1005/300/300")
+    }
 
 
 
@@ -29,7 +38,7 @@ export default defineComponent({
     return {
       container,
       drawCircle,
-      drawImage,
+      addImage,
       saveToLocalStorage
     }
   }
