@@ -6,6 +6,17 @@ interface NodeObject {
   dragable: boolean;
 }
 
+interface ObjectInState {
+  id: string;
+  url?: string;
+  x: number;
+  y: number;
+  type: string;
+  draggable: boolean;
+  scaleX: number;
+  scaleY: number;
+}
+
 interface State {
   arrayObjectsLayer: Array<any>;
   kanvasWidth: number;

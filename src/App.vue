@@ -1,7 +1,7 @@
 <template>
   <div id="container" ref="container"></div>
 
-  <button @click="drawCircle">Add Circle</button>
+  <button @click="addCircle">Add Circle</button>
   <button @click="addImage">Add Image</button>
   <button @click="saveToLocalStorage">Save Stage</button>
 </template>
@@ -28,10 +28,19 @@ export default defineComponent({
       drawImage({
         x: 100,
         y: 100,
-        draggable: true,
         scaleX: 1,
         scaleY: 1
       }, "https://picsum.photos/id/1005/300/300")
+    }
+
+    const addCircle = () => {
+      drawCircle({
+        x: 100,
+        y: 100,
+        fill: "red",
+        stroke: "black",
+        radius: 70
+      })
     }
 
 
@@ -39,7 +48,7 @@ export default defineComponent({
 
     return {
       container,
-      drawCircle,
+      addCircle,
       addImage,
       saveToLocalStorage,
 

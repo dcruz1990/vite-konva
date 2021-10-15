@@ -1,6 +1,5 @@
 import Konva from "konva";
-import { ImageConfig } from "konva/lib/shapes/Image";
-import { Stage, StageConfig } from "konva/lib/Stage";
+import { CircleConfig } from "konva/lib/shapes/Circle";
 import { ref, watch } from "vue";
 import { general } from "./general";
 
@@ -12,7 +11,7 @@ export const useKonva = () => {
   const possibleFilters = ref(["", "blur", "invert"]);
 
   const state = ref<State>({
-    arrayObjectsLayer: <any>[],
+    arrayObjectsLayer: <ObjectInState[]>[],
     kanvasWidth: 18.9,
     kanvasHeight: 10,
     widthKanvas: 1600,
@@ -105,12 +104,22 @@ export const useKonva = () => {
 
       stg.arrayObjectsLayer.forEach((object) => {
         switch (object.type) {
+          case "circle":
+            drawCircle({
+              x: object.x,
+              y: object.y,
+              scaleX: object.scaleX,
+              scaleY: object.scaleY,
+              fill: object.fill,
+              stroke: object.stroke,
+              radius: object.radius,
+            });
+
           case "image":
             drawImage(
               {
                 x: object.x,
                 y: object.y,
-                draggable: object.draggable,
                 width: object.width,
                 height: object.height,
                 scaleX: object.scaleX,
@@ -124,16 +133,7 @@ export const useKonva = () => {
             break;
         }
       });
-
-      // konvaInstance.value = Konva.Node.create(JSON.parse(savedStage), el);
     }
-    //  else {
-    //   konvaInstance.value = new Konva.Stage({
-    //     container: el || "container", // id of container <div>
-    //     width: 500,
-    //     height: 500,
-    //   });
-    // }
 
     tr.value = new Konva.Transformer({ keepRatio: true });
     layer.value.add(tr.value);
@@ -143,44 +143,43 @@ export const useKonva = () => {
     konvaInstance.value?.on("click", (event: any) => {
       transform(event);
     });
-
-    // create();
   };
 
-  const createObject = (attrs: any) => {
-    return Object.assign({}, attrs, {
-      // define position
-      x: 0,
-      y: 0,
-      // here should be url to image
-      src: "",
-      // and define filter on it, let's define that we can have only
-      // "blur", "invert" or "" (none)
-      filter: "blur",
-    });
-  };
-
-  const drawCircle = () => {
-    if (!konvaInstance.value) return;
+  const drawCircle = (config: CircleConfig) => {
+    console.log("firing circle");
+    if (!layer.value) return;
 
     let circle = new Konva.Circle({
-      name: "Red circle",
-      x: konvaInstance.value?.width() / 2,
-      y: konvaInstance.value.height() / 2,
-      radius: 70,
-      fill: "red",
-      stroke: "black",
-      strokeWidth: 1,
+      id: generateGuid(),
+      x: config.x,
+      y: config.y,
+      radius: config.radius,
+      fill: config.fill,
+      stroke: config.stroke,
+      strokeWidth: config.strokeWidth,
       draggable: true,
+      scaleX: config.scaleX,
+      scaleY: config.scaleY,
     });
 
     layer.value?.add(circle);
 
-    state.value.arrayObjectsLayer.push(circle);
+    state.value.arrayObjectsLayer.push({
+      id: circle.attrs.id,
+      x: circle.attrs.x,
+      y: circle.attrs.y,
+      radius: circle.attrs.radius,
+      fill: circle.attrs.fill,
+      stroke: circle.attrs.stroke,
+      strokeWidth: circle.attrs.strokeWidth,
+      type: "circle",
+      scaleX: circle.attrs.scaleX,
+      scaleY: circle.attrs.scaleY,
+    });
 
-    // update(state.value);
-
-    // console.info(state.value);
+    circle.on("dragend transformend", () => {
+      updateState(circle);
+    });
   };
 
   watch(state, () => console.log(state.value.arrayObjectsLayer));
@@ -191,7 +190,6 @@ export const useKonva = () => {
       y: number;
       width?: number;
       height?: number;
-      draggable?: boolean;
       scaleX?: 1;
       scaleY?: 1;
     },
@@ -209,7 +207,7 @@ export const useKonva = () => {
         image: imageObj,
         width: config.width,
         height: config.height,
-        draggable: config.draggable,
+        draggable: true,
         scaleX: config.scaleX,
         scaleY: config.scaleY,
       });
@@ -238,6 +236,7 @@ export const useKonva = () => {
   };
 
   const updateState = (source: any) => {
+    console.log(source);
     state.value.arrayObjectsLayer = state.value.arrayObjectsLayer.map(
       (item) => {
         if (item.id === source.attrs.id) {
@@ -267,96 +266,6 @@ export const useKonva = () => {
     if (nodes) tr.value?.nodes(nodes);
   };
 
-  // const create = () => {
-  //   layer.value?.destroyChildren();
-  //   state.value?.arrayObjectsLayer.forEach((item, index) => {
-  //     var node = new Konva.Image({
-  //       draggable: true,
-  //       name: "item-" + index,
-  //       // make it smaller
-  //       scaleX: 0.5,
-  //       scaleY: 0.5,
-  //       image: {},
-  //     } as ImageConfig);
-  //     layer.value?.add(node);
-  //     node.on("dragend", () => {
-  //       // make new state
-  //       state.value = state.value?.slice();
-  //       // update object data
-  //       if (state.value)
-  //         state.value[index] = Object.assign({}, state.value[index], {
-  //           x: node.x(),
-  //           y: node.y(),
-  //         });
-  //       // save it into history
-  //       saveStateToHistory(state.value);
-  //       // don't need to call update here
-  //       // because changes already in node
-  //     });
-
-  //     node.on("click", () => {
-  //       let filter;
-  //       // find new filter
-  //       if (state.value) {
-  //         var oldFilterIndex = possibleFilters.value.indexOf(
-  //           state.value[index].filter
-  //         );
-  //         var nextIndex = (oldFilterIndex + 1) % possibleFilters.value.length;
-  //         filter = possibleFilters.value[nextIndex];
-  //       }
-
-  //       // apply state changes
-  //       state.value = state.value?.slice();
-
-  //       if (state.value)
-  //         state.value[index] = Object.assign({}, state.value[index], {
-  //           filter: filter,
-  //         });
-  //       // save state to history
-  //       saveStateToHistory(state.value);
-  //       // update canvas from state
-  //       update(state.value);
-  //     });
-
-  //     var img = new window.Image();
-  //     img.onload = function () {
-  //       node.image(img);
-  //       update(state.value);
-  //     };
-  //     img.src = item.src;
-  //   });
-  //   update(state.value);
-  // };
-
-  const update = (object: any) => {
-    if (!state) return;
-    state.value.arrayObjectsLayer.forEach((item, index) => {
-      var node = konvaInstance.value?.findOne("`#${item.id}`");
-      if (node) {
-        node.setAttrs({
-          x: item.x,
-          y: item.y,
-        });
-
-        // if (!node.type()) {
-        //  return;
-        // }
-        // if (item.filter === "blur") {
-        //   node.filters([Konva.Filters.Blur]);
-        //   node.blurRadius(10);
-        //   node.cache();
-        // } else if (item.filter === "invert") {
-        //   node.filters([Konva.Filters.Invert]);
-        //   node.cache();
-        // } else {
-        //   node.filters([]);
-        //   node.clearCache();
-        // }
-      }
-    });
-  };
-
-  //
   // const saveStateToHistory = (state: any[] | undefined) => {
   //   appHistory.value = appHistory.value.slice(0, appHistoryStep.value + 1);
   //   appHistory.value = appHistory.value.concat([state]);
