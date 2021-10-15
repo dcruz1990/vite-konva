@@ -1,14 +1,14 @@
 import Konva from "konva";
 import { ImageConfig } from "konva/lib/shapes/Image";
 import { Stage, StageConfig } from "konva/lib/Stage";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { general } from "./general";
 
 export const useKonva = () => {
   const konvaInstance = ref<Konva.Stage>();
   const layer = ref<Konva.Layer>();
   const tr = ref<Konva.Transformer>();
-  const { isEqual } = general();
+  const { isEqual, generateGuid } = general();
   const possibleFilters = ref(["", "blur", "invert"]);
 
   const state = ref<State>({
@@ -113,6 +113,8 @@ export const useKonva = () => {
                 draggable: object.draggable,
                 width: object.width,
                 height: object.height,
+                scaleX: object.scaleX,
+                scaleY: object.scaleY,
               },
               object.url
             );
@@ -181,6 +183,8 @@ export const useKonva = () => {
     // console.info(state.value);
   };
 
+  watch(state, () => console.log(state.value.arrayObjectsLayer));
+
   const drawImage = (
     config: {
       x: number;
@@ -188,6 +192,8 @@ export const useKonva = () => {
       width?: number;
       height?: number;
       draggable?: boolean;
+      scaleX?: 1;
+      scaleY?: 1;
     },
     url: string
   ) => {
@@ -197,35 +203,57 @@ export const useKonva = () => {
     var imageObj = new Image();
     imageObj.onload = () => {
       var image = new Konva.Image({
+        id: generateGuid(),
         x: config.x,
         y: config.y,
         image: imageObj,
         width: config.width,
         height: config.height,
         draggable: config.draggable,
+        scaleX: config.scaleX,
+        scaleY: config.scaleY,
       });
 
       // add the shape to the layer
       layer.value?.add(image);
+
+      // Put the Image into the state
       state.value.arrayObjectsLayer.push({
+        id: image.attrs.id,
         url: url,
         x: image.attrs.x,
         y: image.attrs.y,
-        width: image.attrs.width,
-        height: image.attrs.height,
         type: "image",
         draggable: image.attrs.draggable,
+        scaleX: image.scaleX,
+        scaleY: image.scaleY,
+      });
+
+      // Update state when Image is draged
+      image.on("dragend transformend", () => {
+        updateState(image);
       });
     };
     imageObj.src = url;
   };
 
+  const updateState = (source: any) => {
+    state.value.arrayObjectsLayer = state.value.arrayObjectsLayer.map(
+      (item) => {
+        if (item.id === source.attrs.id) {
+          item.x = source.attrs.x;
+          item.y = source.attrs.y;
+          item.scaleX = source.attrs.scaleX;
+          item.scaleY = source.attrs.scaleY;
+        }
+
+        return item;
+      }
+    );
+  };
+
   const saveToLocalStorage = () => {
     localStorage.setItem("state", JSON.stringify(state.value));
-    // konvaInstance.value
-    //   ? (localStorage.setItem("stage", konvaInstance.value?.toJSON()),
-    //     alert("saved to local"))
-    //   : null;
   };
 
   const transform = (event: any) => {
@@ -300,31 +328,30 @@ export const useKonva = () => {
   //   update(state.value);
   // };
 
-  const update = (state: any[] | undefined) => {
+  const update = (object: any) => {
     if (!state) return;
-    state.forEach(function (item, index) {
-      var node = konvaInstance.value?.findOne("#container" + index);
-      // console.log(node);
+    state.value.arrayObjectsLayer.forEach((item, index) => {
+      var node = konvaInstance.value?.findOne("`#${item.id}`");
       if (node) {
         node.setAttrs({
           x: item.x,
           y: item.y,
         });
 
-        //if (!node.image()) {
+        // if (!node.type()) {
         //  return;
         // }
-        if (item.filter === "blur") {
-          node.filters([Konva.Filters.Blur]);
-          node.blurRadius(10);
-          node.cache();
-        } else if (item.filter === "invert") {
-          node.filters([Konva.Filters.Invert]);
-          node.cache();
-        } else {
-          node.filters([]);
-          node.clearCache();
-        }
+        // if (item.filter === "blur") {
+        //   node.filters([Konva.Filters.Blur]);
+        //   node.blurRadius(10);
+        //   node.cache();
+        // } else if (item.filter === "invert") {
+        //   node.filters([Konva.Filters.Invert]);
+        //   node.cache();
+        // } else {
+        //   node.filters([]);
+        //   node.clearCache();
+        // }
       }
     });
   };

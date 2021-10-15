@@ -29,6 +29,8 @@ export default defineComponent({
         x: 100,
         y: 100,
         draggable: true,
+        scaleX: 1,
+        scaleY: 1
       }, "https://picsum.photos/id/1005/300/300")
     }
 
@@ -39,7 +41,8 @@ export default defineComponent({
       container,
       drawCircle,
       addImage,
-      saveToLocalStorage
+      saveToLocalStorage,
+
     }
   }
 })
