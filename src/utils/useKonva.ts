@@ -1,4 +1,5 @@
 import Konva from "konva";
+import { Node } from "konva/lib/Node";
 import { CircleConfig } from "konva/lib/shapes/Circle";
 import { ref, watch } from "vue";
 import { general } from "./general";
@@ -6,9 +7,14 @@ import { general } from "./general";
 export const useKonva = () => {
   const konvaInstance = ref<Konva.Stage>();
   const layer = ref<Konva.Layer>();
+  const background = ref<Konva.Rect>();
   const tr = ref<Konva.Transformer>();
   const { isEqual, generateGuid } = general();
   const possibleFilters = ref(["", "blur", "invert"]);
+
+  watch(tr, () => {
+    console.log(tr.value);
+  });
 
   const state = ref<State>({
     arrayObjectsLayer: <ObjectInState[]>[],
@@ -91,10 +97,29 @@ export const useKonva = () => {
     if (!el) return;
     layer.value = new Konva.Layer();
 
+    //Instance Konva
     konvaInstance.value = new Konva.Stage({
       container: el || "container", // id of container <div>
       width: 500,
-      height: 500,
+      height: 800,
+    });
+
+    //Build background
+    background.value = new Konva.Rect({
+      name: "background",
+      fill: "white",
+      x: 0,
+      y: 0,
+      width: konvaInstance.value.width(),
+      height: konvaInstance.value.height(),
+    });
+
+    // Add background to Layer
+    layer.value.add(background.value);
+
+    //Clear transformers on background click
+    background.value.on("click", () => {
+      tr.value?.nodes([]);
     });
 
     let savedStage = localStorage.getItem("state");
@@ -141,11 +166,15 @@ export const useKonva = () => {
     konvaInstance.value?.add(layer.value);
 
     konvaInstance.value?.on("click", (event: any) => {
+      console.log(event);
+      if (event.target.attrs.name === "background") return;
       transform(event);
     });
   };
 
   const drawCircle = (config: CircleConfig) => {
+    const ctransf = new Konva.Transformer();
+
     console.log("firing circle");
     if (!layer.value) return;
 
@@ -163,6 +192,9 @@ export const useKonva = () => {
     });
 
     layer.value?.add(circle);
+    layer.value?.add(ctransf);
+
+    const nodes = ctransf.nodes().concat([circle]);
 
     state.value.arrayObjectsLayer.push({
       id: circle.attrs.id,
@@ -257,12 +289,20 @@ export const useKonva = () => {
 
   const transform = (event: any) => {
     if (!konvaInstance.value) return;
+    console.log(tr.value?.nodes());
 
     if (isEqual([event.target, konvaInstance.value])) {
       tr.value?.nodes([]);
       return;
     }
+
+    let bck = tr.value
+      ?.nodes()
+      .filter((item) => item.name === background.value?.name);
     const nodes = tr.value?.nodes().concat([event.target]);
+
+    if (bck) tr.value?.nodes([]);
+
     if (nodes) tr.value?.nodes(nodes);
   };
 
@@ -271,6 +311,19 @@ export const useKonva = () => {
   //   appHistory.value = appHistory.value.concat([state]);
   //   appHistoryStep.value += 1;
   // };
+
+  function createObject(attrs: any) {
+    return Object.assign({}, attrs, {
+      // define position
+      x: 0,
+      y: 0,
+      // here should be url to image
+      src: "",
+      // and define filter on it, let's define that we can have only
+      // "blur", "invert" or "" (none)
+      filter: "blur",
+    });
+  }
 
   return {
     init,

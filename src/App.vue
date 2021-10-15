@@ -1,5 +1,9 @@
 <template>
-  <div id="container" ref="container"></div>
+  <div
+    id="container"
+    ref="container"
+    style="border: 1px solid black;display: flex;justify-content: center;background-color: darkgray;"
+  ></div>
 
   <button @click="addCircle">Add Circle</button>
   <button @click="addImage">Add Image</button>
@@ -58,12 +62,5 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.container {
-  width: 500px;
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  background-color: bisque;
-}
 </style>
 
