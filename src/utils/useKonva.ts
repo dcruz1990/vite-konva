@@ -7,7 +7,7 @@ import { general } from "./general";
 export const useKonva = () => {
   const konvaInstance = ref<Konva.Stage>();
   const layer = ref<Konva.Layer>();
-  const background = ref<Konva.Rect>();
+  const background = ref<Konva.Image>();
   const tr = ref<Konva.Transformer>();
   const { isEqual, generateGuid } = general();
   const possibleFilters = ref(["", "blur", "invert"]);
@@ -97,28 +97,58 @@ export const useKonva = () => {
     if (!el) return;
     layer.value = new Konva.Layer();
 
+    //Build background
+    Konva.Image.fromURL(
+      "https://picsum.photos/id/1005/300/300",
+      function (image: Konva.Image) {
+        // image is Konva.Image instance
+        if (konvaInstance.value) {
+          image.width(konvaInstance.value?.width());
+          image.height(konvaInstance.value?.height());
+        }
+        layer.value?.add(image);
+        layer.value?.draw();
+      }
+    );
+
     //Instance Konva
     konvaInstance.value = new Konva.Stage({
       container: el || "container", // id of container <div>
-      width: 500,
-      height: 800,
+      width: 1080,
+      height: 1080,
     });
 
-    //Build background
-    background.value = new Konva.Rect({
-      name: "background",
-      fill: "white",
-      x: 0,
-      y: 0,
-      width: konvaInstance.value.width(),
-      height: konvaInstance.value.height(),
-    });
+    // var backgroundObject = new Image();
+    // backgroundObject.onload = () => {
+    //   background.value = new Konva.Image({
+    //     name: "Background",
+    //     id: generateGuid(),
+    //     x: 0,
+    //     y: 0,
+    //     image: backgroundObject,
+    //     width: konvaInstance.value?.width(),
+    //     height: konvaInstance.value?.height(),
+    //     draggable: false,
+    //   });
+    // };
+    // backgroundObject.src = "https://picsum.photos/id/1005/300/300";
 
-    // Add background to Layer
-    layer.value.add(background.value);
+    // White board background
+    // background.value = new Konva.Rect({
+    //   name: "background",
+    //   fill: "white",
+    //   x: 0,
+    //   y: 0,
+    //   width: konvaInstance.value.width(),
+    //   height: konvaInstance.value.height(),
+    // });
+
+    if (background.value)
+      // Add background to Layer
+      layer.value?.add(background.value);
 
     //Clear transformers on background click
-    background.value.on("click", () => {
+    background.value?.on("click", () => {
       tr.value?.nodes([]);
     });
 
@@ -161,7 +191,10 @@ export const useKonva = () => {
     }
 
     tr.value = new Konva.Transformer({ keepRatio: true });
+
     layer.value.add(tr.value);
+
+    tr.value.moveToTop();
 
     konvaInstance.value?.add(layer.value);
 
@@ -284,6 +317,8 @@ export const useKonva = () => {
   };
 
   const saveToLocalStorage = () => {
+    if (konvaInstance.value)
+      localStorage.setItem("stage", konvaInstance.value.toJSON());
     localStorage.setItem("state", JSON.stringify(state.value));
   };
 
@@ -291,14 +326,29 @@ export const useKonva = () => {
     if (!konvaInstance.value) return;
     console.log(tr.value?.nodes());
 
-    if (isEqual([event.target, konvaInstance.value])) {
-      tr.value?.nodes([]);
-      return;
-    }
+    // if (isEqual([event.target, konvaInstance.value])) {
+    //   tr.value?.nodes([]);
+    //   return;
+    // }
 
     let bck = tr.value
       ?.nodes()
       .filter((item) => item.name === background.value?.name);
+
+    // let exists = tr.value
+    //   ?.nodes()
+    //   .filter((item) => item.id === event.target.attrs.id);
+
+    // if (tr.value && exists) {
+    //   for (var i = 0; i < tr.value?.nodes().length; i++) {
+    //     if (tr.value?.nodes()[i].id === exists[0].id) {
+    //       tr.value?.nodes().splice(i, 1);
+    //     }
+    //   }
+
+    //   return;
+    // }
+
     const nodes = tr.value?.nodes().concat([event.target]);
 
     if (bck) tr.value?.nodes([]);
