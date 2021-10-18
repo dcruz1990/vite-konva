@@ -8,6 +8,7 @@ export const useKonva = () => {
   const konvaInstance = ref<Konva.Stage>();
   const layer = ref<Konva.Layer>();
   const background = ref<Konva.Image>();
+  const whiteBoard = ref<Konva.Rect>();
   const tr = ref<Konva.Transformer>();
   const { isEqual, generateGuid } = general();
   const possibleFilters = ref(["", "blur", "invert"]);
@@ -93,23 +94,9 @@ export const useKonva = () => {
   const appHistory = ref([state.value]);
   const appHistoryStep = ref(0);
 
-  const init = (el: HTMLDivElement) => {
+  const init = (el: HTMLDivElement, imageUrl?: string) => {
     if (!el) return;
     layer.value = new Konva.Layer();
-
-    //Build background
-    Konva.Image.fromURL(
-      "https://picsum.photos/id/1005/300/300",
-      function (image: Konva.Image) {
-        // image is Konva.Image instance
-        if (konvaInstance.value) {
-          image.width(konvaInstance.value?.width());
-          image.height(konvaInstance.value?.height());
-        }
-        layer.value?.add(image);
-        layer.value?.draw();
-      }
-    );
 
     //Instance Konva
     konvaInstance.value = new Konva.Stage({
@@ -118,6 +105,34 @@ export const useKonva = () => {
       height: 1080,
     });
 
+    if (imageUrl) {
+      //Build background
+      Konva.Image.fromURL(imageUrl, function (image: Konva.Image) {
+        image.name("background");
+        // image is Konva.Image instance
+        if (konvaInstance.value) {
+          image.width(konvaInstance.value?.width());
+          image.height(konvaInstance.value?.height());
+        }
+        layer.value?.add(image);
+        layer.value?.draw();
+      });
+    } else {
+      console.log("hit whiteboard");
+      // White board background
+      whiteBoard.value = new Konva.Rect({
+        name: "background",
+        fill: "white",
+        x: 0,
+        y: 0,
+        width: konvaInstance.value?.width(),
+        height: konvaInstance.value?.height(),
+      });
+      layer.value?.add(whiteBoard.value);
+      layer.value?.draw();
+    }
+
+    // Using normal API to build background image
     // var backgroundObject = new Image();
     // backgroundObject.onload = () => {
     //   background.value = new Konva.Image({
@@ -143,9 +158,9 @@ export const useKonva = () => {
     //   height: konvaInstance.value.height(),
     // });
 
-    if (background.value)
-      // Add background to Layer
-      layer.value?.add(background.value);
+    // if (background.value)
+    // Add background to Layer
+    // layer.value?.add(background.value);
 
     //Clear transformers on background click
     background.value?.on("click", () => {
@@ -202,6 +217,30 @@ export const useKonva = () => {
       console.log(event);
       if (event.target.attrs.name === "background") return;
       transform(event);
+    });
+
+    konvaInstance.value.on("wheel", (e: any) => {
+      if (!konvaInstance.value) return;
+      e.evt.preventDefault();
+      const oldScale = konvaInstance.value?.scaleX();
+
+      const pointer = konvaInstance.value?.getPointerPosition();
+
+      if (!pointer) return;
+      var mousePointTo = {
+        x: (pointer.x - konvaInstance.value?.x()) / oldScale,
+        y: (pointer.y - konvaInstance.value?.y()) / oldScale,
+      };
+
+      var newScale = e.evt.deltaY > 0 ? oldScale * 0.5 : oldScale / 0.5;
+
+      konvaInstance.value?.scale({ x: newScale, y: newScale });
+
+      var newPos = {
+        x: pointer.x - mousePointTo.x * newScale,
+        y: pointer.y - mousePointTo.y * newScale,
+      };
+      konvaInstance.value?.position(newPos);
     });
   };
 
@@ -375,6 +414,29 @@ export const useKonva = () => {
     });
   }
 
+  const zoomIn = () => {
+    console.log(background.value);
+    if (!background.value) return;
+    const oldScale = konvaInstance.value?.scaleX();
+
+    // konvaInstance.value?.scale({
+    //   y: 0.3,
+    //   x: 0.2,
+    // });
+    let backgroundAspectRatio =
+      background.value?.width() / background.value?.height();
+
+    console.log(backgroundAspectRatio);
+
+    konvaInstance.value?.scale({ x: 0.5, y: 0.5 });
+    konvaInstance.value?.setAttrs({ width: 1000, height: 500 });
+    konvaInstance.value?.draw();
+
+    // stage.width(sceneWidth * scale);
+    // stage.height(sceneHeight * scale);
+    // stage.scale({ x: scale, y: scale });
+  };
+
   return {
     init,
     konvaInstance,
@@ -382,5 +444,6 @@ export const useKonva = () => {
     drawImage,
     saveToLocalStorage,
     state,
+    zoomIn,
   };
 };

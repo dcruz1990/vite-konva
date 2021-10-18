@@ -1,4 +1,6 @@
 <template>
+  <button @click="zoomIn">Zoom in</button>
+  <button @click="saveToLocalStorage">Zoom out</button>
   <div
     id="container"
     ref="container"
@@ -20,7 +22,7 @@ export default defineComponent({
     const container = ref()
 
     // Bring Konva Instance
-    const { init, drawCircle, drawImage, saveToLocalStorage, state } = useKonva()
+    const { init, drawCircle, drawImage, saveToLocalStorage, state, zoomIn } = useKonva()
 
     onMounted(() => {
       // Init Konva
@@ -55,6 +57,7 @@ export default defineComponent({
       addCircle,
       addImage,
       saveToLocalStorage,
+      zoomIn
 
     }
   }
